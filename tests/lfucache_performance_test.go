@@ -101,14 +101,13 @@ func TestIteratorPerformance(t *testing.T) {
 
 func TestIteratorPerformanceAdvanced(t *testing.T) {
 	cache := testing.Benchmark(func(b *testing.B) {
-		c := New[int, int](10_000)
+		c := New[int, int](1000)
 
-		for i := 0; i < 10e7; i++ {
-			c.Put(-42, -42)
-		}
-
-		for i := 1; i <= 10_000; i++ {
+		for i := 1; i <= 1000; i++ {
 			c.Put(i, i)
+			for j := 0; j < i; j++ {
+				c.Get(i)
+			}
 		}
 
 		for b.Loop() {
@@ -117,10 +116,12 @@ func TestIteratorPerformanceAdvanced(t *testing.T) {
 	})
 
 	emulator := testing.Benchmark(func(b *testing.B) {
-		m := make([]int, 10_000)
+		m := make([]int, 1000)
 
 		for i := 0; i < len(m); i++ {
-			m[i] = i
+			for j := 0; j < i; j++ {
+				m[i]++
+			}
 		}
 
 		for b.Loop() {
