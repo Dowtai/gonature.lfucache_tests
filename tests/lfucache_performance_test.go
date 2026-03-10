@@ -99,6 +99,38 @@ func TestIteratorPerformance(t *testing.T) {
 	require.LessOrEqual(t, float64(cache.NsPerOp())/float64(emulator.NsPerOp()), 4.)
 }
 
+func TestIteratorPerformanceAdvanced(t *testing.T) {
+	cache := testing.Benchmark(func(b *testing.B) {
+		c := New[int, int](10_000)
+
+		for i := 0; i < 10e7; i++ {
+			c.Put(-42, -42)
+		}
+
+		for i := 1; i <= 10_000; i++ {
+			c.Put(i, i)
+		}
+
+		for b.Loop() {
+			collect(c.All())
+		}
+	})
+
+	emulator := testing.Benchmark(func(b *testing.B) {
+		m := make([]int, 10_000)
+
+		for i := 0; i < len(m); i++ {
+			m[i] = i
+		}
+
+		for b.Loop() {
+			collect(slices.Backward(m))
+		}
+	})
+
+	require.LessOrEqual(t, float64(cache.NsPerOp())/float64(emulator.NsPerOp()), 4.)
+}
+
 func TestIteratorAllocs(t *testing.T) {
 	debug.SetGCPercent(-1)
 	prev := runtime.GOMAXPROCS(1)
